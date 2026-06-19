@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HATOYA - Matcha Basics Quiz</title>
+  <style>
+    /* --------------------------------------------------
+     * Global Variables & Reset CSS
+     * -------------------------------------------------- */
+    :root {
+      --primary-color: #2e563f;       /* Deep Tea Green */
+      --primary-light: #f1f5f2;       /* Very light green-tinted background */
+      --secondary-color: #8ea670;     /* Soft matcha latte green */
+      --text-color: #2c3531;          /* Elegant dark gray */
+      --text-muted: #606f6b;          /* Supportive muted gray */
+      --bg-color: #f7f9f6;            /* Overall app background */
+      --card-bg: #ffffff;             /* Card background */
+      --accent-correct: #4caf50;      /* Success Green */
+      --accent-incorrect: #e53935;    /* Failure Red */
+      --accent-warning: #ffb300;      /* Warning Orange */
+      --border-radius: 12px;          /* Card rounded corners */
+      --transition: all 0.3s ease;    /* Smooth hover transitions */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 20px 10px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* --------------------------------------------------
+     * Layout Containers
+     * -------------------------------------------------- */
+    .app-container {
+      width: 100%;
+      max-width: 720px;
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 25px rgba(46, 86, 63, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(46, 86, 63, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .app-header {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .app-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      background-color: #e0e6e2;
+      height: 6px;
+      width: 100%;
+      position: relative;
+    }
+
+    .progress-bar {
+      background-color: var(--secondary-color);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease-in-out;
+    }
+
+    /* Main Body Area */
+    .app-body {
+      padding: 30px 24px;
+      flex-grow: 1;
+    }
+
+    /* --------------------------------------------------
+     * Quiz Screen Styles
+     * -------------------------------------------------- */
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .question-number {
+      color: var(--primary-color);
+      background-color: var(--primary-light);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .target-slide {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      background-color: #f0f0f0;
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+
+    .question-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: var(--text-color);
+      line-height: 1.5;
+    }
+
+    /* Options List */
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .option-item {
+      background-color: #ffffff;
+      border: 2px solid #e0e6e2;
+      border-radius: var(--border-radius);
+      padding: 16px 20px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-color);
+      cursor: pointer;
+      text-align: left;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .option-item:hover {
+      border-color: var(--secondary-color);
+      background-color: var(--primary-light);
+    }
+
+    .option-item.selected {
+      border-color: var(--primary-color);
+      background-color: var(--primary-light);
+      font-weight: 700;
+    }
+
+    /* Custom Radio-style Indicator */
+    .option-item::before {
+      content: '';
+      width: 20px;
+      height: 20px;
+      border: 2px solid #cbd5e1;
+      border-radius: 50%;
+      margin-right: 12px;
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+
+    .option-item.selected::before {
+      border-color: var(--primary-color);
+      background-color: var(--primary-color);
+      box-shadow: inset 0 0 0 4px var(--primary-light);
+    }
+
+    /* --------------------------------------------------
+     * Navigation Buttons
+     * -------------------------------------------------- */
+    .navigation-area {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 120px;
+    }
+
+    .btn-secondary {
+      background-color: #e2e8f0;
+      color: #475569;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: #cbd5e1;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      flex-grow: 1;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: #1f3b2b;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Alert Container Styling */
+    .alert-container {
+      margin-top: 16px;
+      padding: 12px;
+      background-color: #ffebee;
+      border-left: 4px solid var(--accent-incorrect);
+      border-radius: 4px;
+      color: #c62828;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: none; /* Hidden by default */
+    }
+
+    /* --------------------------------------------------
+     * Result Screen Styles
+     * -------------------------------------------------- */
+    .result-section {
+      display: none; /* Hidden by default */
+    }
+
+    .score-card {
+      text-align: center;
+      padding: 30px 20px;
+      background-color: var(--primary-light);
+      border-radius: var(--border-radius);
+      margin-bottom: 30px;
+      border: 1px dashed var(--secondary-color);
+    }
+
+    .score-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    .score-number {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+
+    .score-percent {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .review-heading {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    /* Review Card List Styles */
+    .review-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .review-item {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .review-item.correct {
+      border-left: 5px solid var(--accent-correct);
+    }
+
+    .review-item.incorrect {
+      border-left: 5px solid var(--accent-incorrect);
+    }
+
+    .review-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+    }
+
+    .review-q-num {
+      font-weight: 700;
+    }
+
+    .review-q-num.correct-text {
+      color: var(--accent-correct);
+    }
+
+    .review-q-num.incorrect-text {
+      color: var(--accent-incorrect);
+    }
+
+    .review-slide {
+      color: var(--text-muted);
+      background-color: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .review-question {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .review-answer-comparison {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background-color: #f8fafc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+
+    .user-ans-row {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .user-ans-row.wrong {
+      color: var(--accent-incorrect);
+      font-weight: 600;
+    }
+
+    .user-ans-row.correct {
+      color: var(--accent-correct);
+      font-weight: 600;
+    }
+
+    .correct-ans-row {
+      display: flex;
+      align-items: flex-start;
+      color: var(--accent-correct);
+      font-weight: 600;
+    }
+
+    .ans-label {
+      width: 120px;
+      flex-shrink: 0;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .review-explanation {
+      background-color: var(--primary-light);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.9rem;
+      color: #334155;
+      border: 1px solid rgba(46, 86, 63, 0.05);
+    }
+
+    .review-explanation strong {
+      display: block;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .action-area {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    /* --------------------------------------------------
+     * Responsive Design (Mobile Optimization)
+     * -------------------------------------------------- */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px 5px;
+      }
+
+      .app-header {
+        padding: 16px;
+      }
+
+      .app-header h1 {
+        font-size: 1.25rem;
+      }
+
+      .app-body {
+        padding: 20px 16px;
+      }
+
+      .question-text {
+        font-size: 1.05rem;
+        margin-bottom: 20px;
+      }
+
+      .option-item {
+        padding: 14px 16px;
+        font-size: 0.95rem;
+      }
+
+      .btn {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+        min-width: 100px;
+      }
+
+      .review-item {
+        padding: 16px;
+      }
+
+      .review-question {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <h1>HATOYA - Matcha Basics Quiz</h1>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="app-body">
+      
+      <!-- Quiz Interface Screen -->
+      <section id="quiz-screen" class="quiz-section">
+        <div class="question-meta">
+          <span id="question-number-badge" class="question-number">Question - / -</span>
+          <span id="target-slide-badge" class="target-slide">Slide Info</span>
+        </div>
+
+        <div id="question-text" class="question-text">
+          Loading question...
+        </div>
+
+        <div id="options-list" class="options-list">
+          <!-- Options will be generated dynamically by JS -->
+        </div>
+
+        <!-- Warning Message Area -->
+        <div id="alert-message" class="alert-container">
+          There are unanswered questions. Please select an answer for all questions before submitting.
+        </div>
+
+        <div class="navigation-area">
+          <button id="btn-prev" class="btn btn-secondary" onclick="prevQuestion()" disabled>Prev</button>
+          <button id="btn-next" class="btn btn-primary" onclick="nextQuestion()">Next</button>
+        </div>
+      </section>
+
+      <!-- Grading & Results Screen -->
+      <section id="result-screen" class="result-section">
+        <div class="score-card">
+          <div class="score-title">Quiz Completed!</div>
+          <div id="score-result" class="score-number">0 / 0</div>
+          <div id="score-percent" class="score-percent">Accuracy: 0%</div>
+        </div>
+
+        <h2 class="review-heading">Review & Explanations</h2>
+        
+        <div id="review-list" class="review-list">
+          <!-- Question reviews and detailed explanations will be generated dynamically -->
+        </div>
+
+        <div class="action-area">
+          <button class="btn btn-primary" onclick="resetQuiz()">Try Again</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // --------------------------------------------------
+    // JSON Data (Fully translated to English, maintaining 16-item structure)
+    // --------------------------------------------------
+    const quizData = {
+      "quiz": [
+        {
+          "question_number": 1,
+          "target_slide": "Slide 3 (Tea in Japan)",
+          "question": "In Japan, green tea, oolong tea, and black tea are all made from the same plant. What is the name of this plant?",
+          "options": [
+            "Camellia sinensis (Chanoki)",
+            "Camellia (Tsubaki)",
+            "Mate"
+          ],
+          "answer": "Camellia sinensis (Chanoki)",
+          "explanation": "In Japan, all 'tea' is made from the plant Camellia sinensis (Chanoki). The differences between types such as green tea, oolong tea, and black tea do not come from different plants, but rather from the degree of 'fermentation (oxidation)' during processing."
+        },
+        {
+          "question_number": 2,
+          "target_slide": "Slide 4 (Tea Flavors and Components)",
+          "question": "What is the amino acid component responsible for the 'umami and sweetness' of tea, which dissolves easily even in low-temperature water?",
+          "options": [
+            "Catechin",
+            "Theanine",
+            "Caffeine"
+          ],
+          "answer": "Theanine",
+          "explanation": "Theanine is the source of umami and sweetness in tea. It is highly soluble even at low temperatures, making it less affected by water temperature. It is found abundantly in high-quality teas such as Gyokuro and Matcha."
+        },
+        {
+          "question_number": 3,
+          "target_slide": "Slide 4 (Tea Flavors and Components)",
+          "question": "How do the chemical components in tea leaves change when exposed to sunlight?",
+          "options": [
+            "Caffeine (bitterness) changes to catechin (astringency)",
+            "Catechin (astringency) changes to theanine (umami and sweetness)",
+            "Theanine (umami and sweetness) changes to catechin (astringency)"
+          ],
+          "answer": "Theanine (umami and sweetness) changes to catechin (astringency)",
+          "explanation": "When tea leaves are exposed to sunlight, the umami and sweetness component 'theanine' changes into the astringent component 'catechin'."
+        },
+        {
+          "question_number": 4,
+          "target_slide": "Slide 5 (Differences by Cultivation Method)",
+          "question": "What is the cultivation method called where tea plants are grown under shade to block sunlight when producing matcha or gyokuro?",
+          "options": [
+            "Open-field cultivation (Roji)",
+            "Shade cultivation (Hifuku / Ooi-shita)",
+            "Forcing cultivation"
+          ],
+          "answer": "Shade cultivation (Hifuku / Ooi-shita)",
+          "explanation": "The cultivation method of using nets to block 70% to 90% of sunlight for about 2 to 3 weeks before harvesting is called 'shade cultivation (Hifuku cultivation or Ooi-shita cultivation)'."
+        },
+        {
+          "question_number": 5,
+          "target_slide": "Slide 5 (Differences by Cultivation Method)",
+          "question": "Which of the following is correct regarding the flavor and leaf characteristics of tea grown in open-field cultivation (such as Sencha)?",
+          "options": [
+            "Astringency is suppressed, and umami and sweetness are strong.",
+            "The leaves are thin and have a deep, dark green color.",
+            "It has a refreshing astringency and a clean, crisp aftertaste."
+          ],
+          "answer": "It has a refreshing astringency and a clean, crisp aftertaste.",
+          "explanation": "In open-field cultivation, where tea plants receive abundant sunlight, theanine changes into catechin, resulting in a refreshing astringency and a clean, crisp aftertaste. The leaves grow thicker and have a lighter color."
+        },
+        {
+          "question_number": 6,
+          "target_slide": "Slide 6 (Classification by Harvest Timing)",
+          "question": "Which of the following is the correct explanation for the characteristics of the first flush tea (Shincha / Ichibancha)?",
+          "options": [
+            "It uses mature, hardened leaves, resulting in less aroma and strong astringency.",
+            "It contains about 3 times more theanine than the second flush, offering a rich umami and sweetness with almost no astringency.",
+            "Because it grows during a period of strong sunlight, catechins increase significantly, creating a sharp, light taste."
+          ],
+          "answer": "It contains about 3 times more theanine than the second flush, offering a rich umami and sweetness with almost no astringency.",
+          "explanation": "Since the first flush tea grows slowly while storing nutrients from winter to spring, it contains about three times more theanine (umami component) than the second flush (Nibancha). It is characterized by a rich umami and sweetness with very little astringency."
+        },
+        {
+          "question_number": 7,
+          "target_slide": "Slide 8 (How Matcha is Made)",
+          "question": "What is the name of the tea leaves used as the raw material for making matcha?",
+          "options": [
+            "Sencha",
+            "Tencha",
+            "Bancha"
+          ],
+          "answer": "Tencha",
+          "explanation": "Matcha refers to the powdered tea produced by grinding the raw material 'Tencha' using a stone mill or a fine pulverizer."
+        },
+        {
+          "question_number": 8,
+          "target_slide": "Slide 8 (How Matcha is Made)",
+          "question": "When producing matcha, how much can a single stone mill grind in one hour?",
+          "options": [
+            "Only about 30g to 40g",
+            "About 300g to 400g",
+            "About 1kg to 2kg"
+          ],
+          "answer": "Only about 30g to 40g",
+          "explanation": "A single stone mill can only grind a tiny amount of about 30g to 40g per hour, requiring immense time and effort."
+        },
+        {
+          "question_number": 9,
+          "target_slide": "Slide 14 (Understanding Tea Utensils)",
+          "question": "What is the correct maintenance and storage method for a 'Chasen' (tea whisk), which is used to mix matcha and hot water?",
+          "options": [
+            "Scrub it vigorously using a hard sponge with dish soap.",
+            "After use, fill a tea bowl with lukewarm water, swirl the whisk in it to wash, and insert it onto a whisk keeper (Kusenaoshi) for storage.",
+            "Since washing with water causes mold, simply wipe it lightly with a tissue."
+          ],
+          "answer": "After use, fill a tea bowl with lukewarm water, swirl the whisk in it to wash, and insert it onto a whisk keeper (Kusenaoshi) for storage.",
+          "explanation": "A Chasen should be washed by swirling it in lukewarm water, gently rubbing away stubborn dirt with your fingers. For storage, it must be inserted onto a dedicated tool called a 'Kusenaoshi' (whisk keeper) to preserve the shape of the bamboo tines."
+        },
+        {
+          "question_number": 10,
+          "target_slide": "Slide 14 (Understanding Tea Utensils)",
+          "question": "Which of the following is the correct precaution when handling a 'Chashaku' (tea scoop), a tool used to scoop matcha?",
+          "options": [
+            "Washing with water is strictly prohibited because it causes the bamboo to warp or lose its shape.",
+            "To prevent bacterial growth, always boil it in hot water after use to sterilize it.",
+            "Wash it with water using a soft sponge and neutral detergent to avoid scratching the surface."
+          ],
+          "answer": "Washing with water is strictly prohibited because it causes the bamboo to warp or lose its shape.",
+          "explanation": "Washing a Chashaku with water is strictly forbidden. After use, gently wipe off any remaining matcha with a tissue or a soft cloth to prevent it from caking."
+        },
+        {
+          "question_number": 11,
+          "target_slide": "Slide 15 (Precautions for Handling Matcha)",
+          "question": "Which of the following is correct regarding 'light', which is a weakness of matcha?",
+          "options": [
+            "As long as it is not exposed to direct sunlight, it will not fade even if placed in a bright room.",
+            "Not only direct sunlight, but even exposure to indoor lighting alone can cause it to fade (lose color).",
+            "Since exposure to light increases the unique aroma components of matcha, moderate light exposure is beneficial."
+          ],
+          "answer": "Not only direct sunlight, but even exposure to indoor lighting alone can cause it to fade (lose color).",
+          "explanation": "The natural green color of tea is extremely sensitive to light. Not only direct sunlight, but even exposure to normal indoor lighting will cause it to fade (lose its vibrant green color)."
+        },
+        {
+          "question_number": 12,
+          "target_slide": "Slide 15 (Precautions for Handling Matcha)",
+          "question": "What is the most appropriate cause of degradation when matcha is exposed to 'air' or stored without being sealed?",
+          "options": [
+            "Matcha absorbs air and hardens into small, pebble-like clumps.",
+            "Oxidation causes the green color of matcha to turn reddish-brown.",
+            "Because it easily absorbs surrounding odors (odor transfer) and moisture, it deteriorates and loses its quality rapidly."
+          ],
+          "answer": "Because it easily absorbs surrounding odors (odor transfer) and moisture, it deteriorates and loses its quality rapidly.",
+          "explanation": "Exposure to air degrades the quality of matcha. Additionally, matcha has a strong tendency to absorb odors (odor transfer) and moisture. Storing it without a proper seal will cause it to quickly absorb surrounding smells and humidity, accelerating its spoilage."
+        },
+        {
+          "question_number": 13,
+          "target_slide": "Slide 16 (Matcha Storage Methods and Precautions)",
+          "question": "What is the 'absolute rule' when opening (or replenishing) matcha that was stored in a freezer or refrigerator?",
+          "options": [
+            "To prevent the temperature of the matcha from rising, quickly open it while cold and fill the tea caddy.",
+            "To prevent severe deterioration caused by condensation, always let it return to room temperature before opening.",
+            "To prevent clumping, warm it slightly in a microwave before opening."
+          ],
+          "answer": "To prevent severe deterioration caused by condensation, always let it return to room temperature before opening.",
+          "explanation": "Opening cold matcha before letting it return to room temperature will cause 'condensation' (moisture to form on the cold powder), causing it to absorb water and spoil rapidly. You must take it out of the freezer 4 hours prior, or the refrigerator 1 hour prior, to let it reach room temperature."
+        },
+        {
+          "question_number": 14,
+          "target_slide": "Slide 16 (Matcha Storage Methods and Precautions)",
+          "question": "Which of the following is the recommended procedure for replenishing matcha to prevent clumping and maintain quality?",
+          "options": [
+            "Sift it through a tea strainer (sifter) into the tea caddy.",
+            "Press and crush it firmly with a spoon while putting it into the tea caddy.",
+            "Add a small amount of water before putting it into the tea caddy."
+          ],
+          "answer": "Sift it through a tea strainer (sifter) into the tea caddy.",
+          "explanation": "When replenishing matcha, to remove clumps and ensure a smooth texture, it is a standard rule to sift the powder through a tea strainer into the tea caddy."
+        },
+        {
+          "question_number": 15,
+          "target_slide": "Slide 17 (How to Prepare Matcha)",
+          "question": "In the preparation of matcha (STEP 1), what is the first important step before pouring hot water?",
+          "options": [
+            "Thoroughly warm the tea bowl with hot water, then discard it and pour 70–80°C hot water directly.",
+            "Add matcha and 'water' first, then whisk them gently and thoroughly until there are no clumps.",
+            "Lightly stroke the surface of the matcha with a tea whisk to create fine foam."
+          ],
+          "answer": "Add matcha and 'water' first, then whisk them gently and thoroughly until there are no clumps.",
+          "explanation": "In STEP 1 of preparing matcha, you scoop the matcha into the tea bowl with a Chashaku, add a small amount of cold water, and whisk carefully until a smooth paste is formed without any clumps."
+        },
+        {
+          "question_number": 16,
+          "target_slide": "Slide 17 (How to Prepare Matcha)",
+          "question": "What is the most appropriate reason for keeping the overall temperature at '70–80°C' when pouring hot water into the matcha pre-mixed with water?",
+          "options": [
+            "To suppress unpleasant tastes like harshness and bitterness, allowing the delicate 'umami and sweetness' of matcha to shine as the main flavor.",
+            "To vaporize caffeine at a high temperature, completely eliminating bitterness.",
+            "To keep the temperature low, which deepens and changes the vibrant green color of matcha."
+          ],
+          "answer": "To suppress unpleasant tastes like harshness and bitterness, allowing the delicate 'umami and sweetness' of matcha to shine as the main flavor.",
+          "explanation": "By combining water and hot water to temper the overall temperature to 70–80°C, you prevent excessive bitterness and astringency from being extracted, perfectly bringing out the delicate 'umami and sweetness' that matcha naturally possesses."
+        }
+      ]
+    };
+
+    // --------------------------------------------------
+    // Application State Variables
+    // --------------------------------------------------
+    let currentQuestionIndex = 0;
+    // Stores the user's answers (array size of 16, filled with null initially)
+    const userAnswers = Array(quizData.quiz.length).fill(null);
+
+    // DOM Elements
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    
+    const progressBar = document.getElementById('progress-bar');
+    const questionNumberBadge = document.getElementById('question-number-badge');
+    const targetSlideBadge = document.getElementById('target-slide-badge');
+    const questionText = document.getElementById('question-text');
+    const optionsList = document.getElementById('options-list');
+    const alertMessage = document.getElementById('alert-message');
+    
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    
+    const scoreResult = document.getElementById('score-result');
+    const scorePercent = document.getElementById('score-percent');
+    const reviewList = document.getElementById('review-list');
+
+    // --------------------------------------------------
+    // Quiz Initialization
+    // --------------------------------------------------
+    function initQuiz() {
+      currentQuestionIndex = 0;
+      userAnswers.fill(null);
+      
+      // Screen switches
+      quizScreen.style.display = 'block';
+      resultScreen.style.display = 'none';
+      alertMessage.style.display = 'none';
+      
+      showQuestion(currentQuestionIndex);
+    }
+
+    // --------------------------------------------------
+    // Display Question
+    // --------------------------------------------------
+    function showQuestion(index) {
+      const currentQuiz = quizData.quiz[index];
+      const totalQuestions = quizData.quiz.length;
+
+      // Hide alert area
+      alertMessage.style.display = 'none';
+
+      // Update progress bar
+      const progressPercent = ((index + 1) / totalQuestions) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+
+      // Set titles and slide metadata
+      questionNumberBadge.innerText = `Question ${index + 1} / ${totalQuestions}`;
+      targetSlideBadge.innerText = currentQuiz.target_slide;
+      questionText.innerText = currentQuiz.question;
+
+      // Clear and regenerate option list
+      optionsList.innerHTML = '';
+      currentQuiz.options.forEach(option => {
+        const optionButton = document.createElement('button');
+        optionButton.className = 'option-item';
+        optionButton.innerText = option;
+        
+        // Mark as selected if the user had already chosen this option
+        if (userAnswers[index] === option) {
+          optionButton.classList.add('selected');
+        }
+
+        // Selection event listener
+        optionButton.onclick = () => selectOption(option);
+        optionsList.appendChild(optionButton);
+      });
+
+      // Navigation button control
+      // Prev Button: disabled on the very first question
+      if (index === 0) {
+        btnPrev.disabled = true;
+      } else {
+        btnPrev.disabled = false;
+      }
+
+      // Next Button: dynamically changes to "Submit Score" on the final question
+      if (index === totalQuestions - 1) {
+        btnNext.innerText = 'Submit Score';
+      } else {
+        btnNext.innerText = 'Next';
+      }
+    }
+
+    // --------------------------------------------------
+    // Handle Option Selection
+    // --------------------------------------------------
+    function selectOption(selectedOption) {
+      // Save the selected answer
+      userAnswers[currentQuestionIndex] = selectedOption;
+
+      // Update styles of option elements
+      const buttons = optionsList.querySelectorAll('.option-item');
+      buttons.forEach(button => {
+        if (button.innerText === selectedOption) {
+          button.classList.add('selected');
+        } else {
+          button.classList.remove('selected');
+        }
+      });
+
+      // Hide any warnings upon selection
+      alertMessage.style.display = 'none';
+    }
+
+    // --------------------------------------------------
+    // "Prev" Button Click Handler
+    // --------------------------------------------------
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        showQuestion(currentQuestionIndex);
+      }
+    }
+
+    // --------------------------------------------------
+    // "Next / Submit" Button Click Handler
+    // --------------------------------------------------
+    function nextQuestion() {
+      const totalQuestions = quizData.quiz.length;
+
+      // Final step trigger: entering grading flow
+      if (currentQuestionIndex === totalQuestions - 1) {
+        // Validate if all questions have been answered
+        const hasUnanswered = userAnswers.some(ans => ans === null);
+        if (hasUnanswered) {
+          // Display the custom warning
+          alertMessage.style.display = 'block';
+          alertMessage.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+        submitQuiz();
+        return;
+      }
+
+      // Regular "Next" transition
+      currentQuestionIndex++;
+      showQuestion(currentQuestionIndex);
+    }
+
+    // --------------------------------------------------
+    // Scoring & Grading Flow
+    // --------------------------------------------------
+    function submitQuiz() {
+      let correctCount = 0;
+      const totalQuestions = quizData.quiz.length;
+
+      // Reset review layout
+      reviewList.innerHTML = '';
+
+      quizData.quiz.forEach((q, idx) => {
+        const userAns = userAnswers[idx];
+        const isCorrect = userAns === q.answer;
+        if (isCorrect) {
+          correctCount++;
+        }
+
+        // Create the individual question review item
+        const reviewItem = document.createElement('div');
+        reviewItem.className = `review-item ${isCorrect ? 'correct' : 'incorrect'}`;
+
+        reviewItem.innerHTML = `
+          <div class="review-meta">
+            <span class="review-q-num ${isCorrect ? 'correct-text' : 'incorrect-text'}">
+              Question ${idx + 1}: ${isCorrect ? 'Correct (◯)' : 'Incorrect (×)'}
+            </span>
+            <span class="review-slide">${q.target_slide}</span>
+          </div>
+          <div class="review-question">${q.question}</div>
+          <div class="review-answer-comparison">
+            <div class="user-ans-row ${isCorrect ? 'correct' : 'wrong'}">
+              <span class="ans-label">Your Answer:</span>
+              <span>${userAns ? userAns : 'Unanswered'}</span>
+            </div>
+            ${!isCorrect ? `
+            <div class="correct-ans-row">
+              <span class="ans-label">Correct Answer:</span>
+              <span>${q.answer}</span>
+            </div>
+            ` : ''}
+          </div>
+          <div class="review-explanation">
+            <strong>Explanation:</strong>
+            ${q.explanation}
+          </div>
+        `;
+        reviewList.appendChild(reviewItem);
+      });
+
+      // Calculate accuracy percentage
+      const percent = Math.round((correctCount / totalQuestions) * 100);
+
+      // Render score outputs
+      scoreResult.innerText = `${correctCount} / ${totalQuestions}`;
+      scorePercent.innerText = `Accuracy: ${percent}%`;
+
+      // Toggle screens
+      quizScreen.style.display = 'none';
+      resultScreen.style.display = 'block';
+
+      // Scroll smoothly to top of the page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --------------------------------------------------
+    // Reset Quiz state
+    // --------------------------------------------------
+    function resetQuiz() {
+      initQuiz();
+    }
+
+    // Execute setup on page load
+    window.onload = function() {
+      initQuiz();
+    };
+  </script>
+</body>
+</html>
